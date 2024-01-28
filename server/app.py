@@ -48,6 +48,41 @@ class PlantByID(Resource):
         return make_response(jsonify(plant), 200)
 
 
+    def patch(self, id):
+        plant = Plant.query.filter_by(id=id).first()
+
+        request_data = request.get_json()
+        filtered_params = self.filter_params(request_data)
+
+        for attr, value in filtered_params.items():
+            setattr(plant, attr, value)
+
+        db.session.add(plant)
+        db.session.commit()
+
+        response_dict = plant.to_dict()
+
+        response = make_response(
+            jsonify(response_dict),
+            200
+        )
+
+        return response
+
+    def filter_params(self, params):
+        allowed_params = ["is_in_stock"]
+        return {k: v for k, v in params.items() if k in allowed_params}
+    
+    
+    def delete(self, id):
+        plant = Plant.query.get(id)
+        
+        db.session.delete(plant)
+        db.session.commit()
+        
+        return make_response("", 204)
+        
+        
 api.add_resource(PlantByID, '/plants/<int:id>')
 
 
